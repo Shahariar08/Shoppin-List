@@ -87,12 +87,16 @@ func updateitem(w http.ResponseWriter, r *http.Request) {
 
 				var curitem Item
 				curitem = i
-				_ = json.NewDecoder(r.Body).Decode(&curitem)
-				item = append(item, curitem)
-				//updated item has been added
+				err2 := json.NewDecoder(r.Body).Decode(&curitem)
+				if err2 == nil {
+					item = append(item, curitem)
+					//updated item has been added
 
-				json.NewEncoder(w).Encode(item)
-
+					json.NewEncoder(w).Encode(item)
+				} else {
+					w.WriteHeader(http.StatusBadRequest)
+					json.NewEncoder(w).Encode(Response{Ok: 0, Message: "An error Occured"})
+				}
 				return
 			}
 		}
