@@ -30,7 +30,13 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 
 func showitem(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(item)
+	err := json.NewEncoder(w).Encode(item)
+	if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(Response{Ok: 0, Message: "Sorry!an Error Occured"})
+			return 
+	}
+
 }
 
 func additem(w http.ResponseWriter, r *http.Request) {
@@ -46,10 +52,15 @@ func additem(w http.ResponseWriter, r *http.Request) {
 		ID_generator++
 		curitem.ID = ID_generator
 		item = append(item, curitem)
-		json.NewEncoder(w).Encode(curitem)
+		err2 := json.NewEncoder(w).Encode(curitem)
+		if err2 != nil{
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(Response{Ok: 0, Message: "Sorry!an Error Occured"})
+		}
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Response{Ok: 0, Message: "An error Occured"})
+		return
 	}
 }
 func deleteitem(w http.ResponseWriter, r *http.Request) {
@@ -72,6 +83,7 @@ func deleteitem(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Response{Ok: 0, Message: "An error Occured"})
+		return
 	}
 
 }
@@ -92,7 +104,12 @@ func updateitem(w http.ResponseWriter, r *http.Request) {
 					item = append(item, curitem)
 					//updated item has been added
 
-					json.NewEncoder(w).Encode(item)
+					err3 := json.NewEncoder(w).Encode(item)
+					if err3 != nil {
+						w.WriteHeader(http.StatusBadRequest)
+		                json.NewEncoder(w).Encode(Response{Ok: 0, Message: "An error Occured"})
+		                return
+					}
 				} else {
 					w.WriteHeader(http.StatusBadRequest)
 					json.NewEncoder(w).Encode(Response{Ok: 0, Message: "An error Occured"})
@@ -107,6 +124,7 @@ func updateitem(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Response{Ok: 0, Message: "An error Occured"})
+		return ;
 	}
 }
 
