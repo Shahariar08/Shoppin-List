@@ -32,9 +32,9 @@ func showitem(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewEncoder(w).Encode(item)
 	if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(Response{Ok: 0, Message: "Sorry!an Error Occured"})
-			return 
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Response{Ok: 0, Message: "Sorry!an Error Occured"})
+		return
 	}
 
 }
@@ -53,7 +53,7 @@ func additem(w http.ResponseWriter, r *http.Request) {
 		curitem.ID = ID_generator
 		item = append(item, curitem)
 		err2 := json.NewEncoder(w).Encode(curitem)
-		if err2 != nil{
+		if err2 != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(Response{Ok: 0, Message: "Sorry!an Error Occured"})
 		}
@@ -107,8 +107,8 @@ func updateitem(w http.ResponseWriter, r *http.Request) {
 					err3 := json.NewEncoder(w).Encode(item)
 					if err3 != nil {
 						w.WriteHeader(http.StatusBadRequest)
-		                json.NewEncoder(w).Encode(Response{Ok: 0, Message: "An error Occured"})
-		                return
+						json.NewEncoder(w).Encode(Response{Ok: 0, Message: "An error Occured"})
+						return
 					}
 				} else {
 					w.WriteHeader(http.StatusBadRequest)
@@ -124,7 +124,7 @@ func updateitem(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Response{Ok: 0, Message: "An error Occured"})
-		return ;
+		return
 	}
 }
 
