@@ -1,6 +1,5 @@
 # Shopping-List
-This is a Shopping List  RESTful api server which has was developed by me.
-it performs
+This is a Shopping List RESTful api server.This performs
 
        => Adding an element to the list
        => Deleting an element from the list
