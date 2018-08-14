@@ -6,16 +6,18 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
 
 var ID_generator int //a generator variable which genereates unique id for an item
 type Item struct {
-	ID       int    `json:"id"`
-	Name     string `json:"name"`
-	Quantity string `json:"quantity"`
-	Price    int    `json:"price"`
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	Quantity     int    `json:"quantity"`
+	PricePerUnit int    `json:"pricePerUnit"`
+	TotalPrice   int    `json:"totalPrice"`
 }
 type Response struct {
 	Ok      int    `json : "ok"`
@@ -29,34 +31,45 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 }
 
 func showitem(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	err := json.NewEncoder(w).Encode(item)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Response{Ok: 0, Message: "Sorry!an Error Occured"})
 		return
 	}
-
 }
 
 func additem(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	var curitem Item
 	err := json.NewDecoder(r.Body).Decode(&curitem)
 	if err == nil {
-		if curitem.Name == "" || curitem.Quantity == "" {
+		if curitem.Name == "" || curitem.Quantity <= 0 || curitem.PricePerUnit <= 0 {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(Response{Ok: 0, Message: "Sorry!insufficiet information"})
+			json.NewEncoder(w).Encode(Response{Ok: 0, Message: "Sorry!insufficiet or invalid information"})
 			return
 		}
+		for index, i := range item {
+			if strings.ToLower(i.Name) == strings.ToLower(curitem.Name) {
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(Response{Ok: 0, Message: "Sorry!This item name already exists.Please try to update it with a put request"})
+				return
+			}
+			item[index] = item[index]
+		}
+
 		ID_generator++
 		curitem.ID = ID_generator
+		curitem.TotalPrice = curitem.PricePerUnit * curitem.Quantity
+
 		item = append(item, curitem)
 		err2 := json.NewEncoder(w).Encode(curitem)
 		if err2 != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(Response{Ok: 0, Message: "Sorry!an Error Occured"})
 		}
+
+		json.NewEncoder(w).Encode(Response{Ok: 1, Message: "Item has been added Sucessfully!"})
+
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Response{Ok: 0, Message: "An error Occured"})
@@ -74,7 +87,14 @@ func deleteitem(w http.ResponseWriter, r *http.Request) {
 			if i.ID == gotId {
 				item = append(item[:index], item[index+1:]...)
 				//found the desired index , removed and then appended the rest of the items items
-				json.NewEncoder(w).Encode(item)
+				err2 := json.NewEncoder(w).Encode(item)
+				if err2 == nil {
+					json.NewEncoder(w).Encode(Response{Ok: 1, Message: "Item has been Deleted Sucessfully!"})
+				} else {
+					w.WriteHeader(http.StatusBadRequest)
+					json.NewEncoder(w).Encode(Response{Ok: 0, Message: "An error Occured"})
+					return
+				}
 				return
 			}
 		}
@@ -94,22 +114,31 @@ func updateitem(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		for index, i := range item {
 			if i.ID == gotId {
-				item = append(item[:index], item[index+1:]...)
+				//item = append(item[:index], item[index+1:]...)
 				//basically deletion
 
 				var curitem Item
-				curitem = i
 				err2 := json.NewDecoder(r.Body).Decode(&curitem)
 				if err2 == nil {
-					item = append(item, curitem)
+					//item = append(item, curitem)
 					//updated item has been added
-
+					if curitem.Name == "" || curitem.Quantity <= 0 || curitem.PricePerUnit <= 0 {
+						w.WriteHeader(http.StatusBadRequest)
+						json.NewEncoder(w).Encode(Response{Ok: 0, Message: "Sorry!insufficiet or invalid information"})
+						return
+					}
+					curitem.ID = gotId
+					curitem.TotalPrice = curitem.PricePerUnit * curitem.Quantity
+					item[index] = curitem
 					err3 := json.NewEncoder(w).Encode(item)
 					if err3 != nil {
 						w.WriteHeader(http.StatusBadRequest)
 						json.NewEncoder(w).Encode(Response{Ok: 0, Message: "An error Occured"})
 						return
+					} else {
+						json.NewEncoder(w).Encode(Response{Ok: 1, Message: "Item has been updated Sucessfully!"})
 					}
+
 				} else {
 					w.WriteHeader(http.StatusBadRequest)
 					json.NewEncoder(w).Encode(Response{Ok: 0, Message: "An error Occured"})
@@ -129,9 +158,9 @@ func updateitem(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	ID_generator = 1
+	ID_generator = 0
 	//sample items added
-	//item = append(item, Item{ID: 1, Name: "Fish", Quantity: "5kg", Price: 350})
+	//item = append(item, Item{ID: 1, Name: "Fish", Quantity: 5, PricePerUnit: 350 , TotalPrice : Quantity*PricePerUnit} )
 	//item = append(item, Item{ID: 2, Name: "Rice", Quantity: "2kg", Price: 120})
 	// item = append(item , Item{ID:3 , Name:"fuck", Quantity:5 , Price : 350})
 	m := mux.NewRouter()
