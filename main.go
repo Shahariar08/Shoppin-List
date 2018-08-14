@@ -159,13 +159,8 @@ func updateitem(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	ID_generator = 0
-	//sample items added
-	//item = append(item, Item{ID: 1, Name: "Fish", Quantity: 5, PricePerUnit: 350 , TotalPrice : Quantity*PricePerUnit} )
-	//item = append(item, Item{ID: 2, Name: "Rice", Quantity: "2kg", Price: 120})
-	// item = append(item , Item{ID:3 , Name:"fuck", Quantity:5 , Price : 350})
+
 	m := mux.NewRouter()
-	//router
-	//function handler
 	m.HandleFunc("/", homepage).Methods("GET")
 	m.HandleFunc("/showitem", showitem).Methods("GET")
 	m.HandleFunc("/additem", additem).Methods("POST")
